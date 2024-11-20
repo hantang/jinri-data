@@ -1,0 +1,40 @@
+name: Process
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - *.py
+      - *.json
+  schedule:
+    - cron: "0 2 * * *"
+
+jobs:
+  process:
+    permissions:
+      contents: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+      - name: Install npm dependencies
+        run: npm install
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install -r requirements.txt
+      - name: Run Python scripts
+        run: python download.py
+      - name: Git auto commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "41898282+github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          commit_message: Automated update by github action
+          # commit_options: '--no-verify --signoff'
+          file_pattern: 'data/'
