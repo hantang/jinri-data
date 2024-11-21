@@ -53,7 +53,10 @@ def download_json(url, headers, savefile, keys, sleep):
         data = response.json()
         image_url = data
         for key in keys:
-            image_url = image_url[key]
+            if key in image_url:
+                image_url = image_url[key]
+            else:
+                return False
 
         if isinstance(image_url, str) and image_url.startswith("http"):
             if sleep:
@@ -117,6 +120,31 @@ def process(config_file, save_dir, names, date):
         download(config[name], date, subdir)
 
 
+def process_v2(config_file, save_dir, names, date=None):
+    config = read_config(config_file)
+    if config is None:
+        logging.warning("Error: config is None")
+        return
+
+    if names is None:
+        names = sorted(config.keys())
+    logging.info(f"names = {names}")
+
+    if date is None:
+        LOS_ANGELES = ZoneInfo("Asia/Shanghai")
+        now = datetime.datetime.now(tz=LOS_ANGELES)
+    else:
+        now = datetime.datetime.strptime(date, "%Y-%m-%d")
+    logging.info(f"now = {now}")
+    for name in names:
+        gaps = config[name]["gaps"]
+        logging.info(f"Process name={name}, gaps={gaps}")
+        subdir = Path(save_dir, name)
+        for day in gaps:
+            new_date = (now + datetime.timedelta(days=day)).strftime("%Y-%m-%d")
+            download(config[name], new_date, subdir)
+
+
 def process_batch(config_file, save_dir, days=30):
     config = read_config(config_file)
     if config is None:
@@ -126,8 +154,8 @@ def process_batch(config_file, save_dir, days=30):
     names = sorted(config.keys())
     now = datetime.datetime.now(datetime.UTC)
     logging.info(f"Download batch, names = {names}, now={now}")
-
-    for gap in range(days):
+    start, end = min(days, 0), max(days, 0)
+    for gap in range(start, end):
         day = now - datetime.timedelta(days=gap)
         date = day.strftime("%Y-%m-%d")
         logging.info(f"Download date = {date}")
@@ -146,21 +174,22 @@ if __name__ == "__main__":
     fmt = "%(asctime)s %(filename)s [line:%(lineno)d] %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=fmt)
 
-    args = argparse.ArgumentParser()
-    args.add_argument("--config", type=str, default="config.json")
-    args.add_argument("--out", type=str, default="data")
-    args.add_argument("--names", type=str, default=None)
-    args.add_argument("--date", type=str, default=None)
-    args.add_argument("--days", type=int, default=0)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="config.json")
+    parser.add_argument("--out", type=str, default="data")
+    parser.add_argument("--names", type=str, default=None)
+    parser.add_argument("--date", type=str, default=None)
+    parser.add_argument("--days", type=int, default=0)
 
-    parser = args.parse_args()
-    config_file = parser.config
-    save_dir = parser.out
-    names = parser.names
-    date = parser.date
-    days = parser.days
+    args = parser.parse_args()
+    config_file = args.config
+    save_dir = args.out
+    names = args.names
+    date = args.date
+    days = args.days
+    logging.info(f"Args = {args}")
 
-    if days > 0:
+    if days != 0:
         process_batch(config_file, save_dir, days)
     else:
-        process(config_file, save_dir, names, date)
+        process_v2(config_file, save_dir, names, date)

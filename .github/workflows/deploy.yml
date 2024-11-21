@@ -8,7 +8,7 @@ on:
       - "*.py"
       - "*.json"
   schedule:
-    - cron: "0 20,1 * * *"
+    - cron: "0 20 * * *"
     - cron: "0 4 25 * *"
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
           python-version: "3.x"
       - run: pip install -r requirements.txt
       - name: Run Python scripts1
-        if: github.event.schedule == '0 20,1 * * *'
+        if: github.event.schedule == '0 20 * * *'
         run: python download.py
       - name: Run Python script2
         if: github.event.schedule == '0 4 25 * *'
