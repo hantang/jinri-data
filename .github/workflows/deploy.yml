@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-    # paths:
-    #   - "*.py"
-    #   - "*.json"
+    paths:
+      - "*.py"
+      - "*.json"
   schedule:
-    - cron: "0 23 * * *"
+    - cron: "0 20,1 * * *"
 
 jobs:
   process:
