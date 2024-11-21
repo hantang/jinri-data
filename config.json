@@ -4,7 +4,8 @@
     "site": "https://owspace.com",
     "base": "https://img.owspace.com/Public/uploads/Download",
     "path": "{base}/{year}/{month}{day}.jpg",
-    "format": "image"
+    "format": "image",
+    "start": "https://img.owspace.com/Public/uploads/Download/2015/0218.jpg"
   },
   "one": {
     "title": "One·一个",
@@ -12,6 +13,7 @@
     "base": "http://v3.wufazhuce.com:8000/api/hp/bydate",
     "path": "{base}/{year}-{month}-{day}",
     "format": "json",
-    "keys": ["data", "img_url"]
+    "keys": ["data", "img_url"],
+    "start": "http://v3.wufazhuce.com:8000/api/hp/bydate/2012-10-07"
   }
 }

@@ -67,8 +67,6 @@ def download_json(url, headers, savefile, keys, sleep):
 def download(info, date, save_dir, sleep=True) -> bool:
     year, month, day = date.split("-")
     filename = date.replace("-", "") + ".jpg"
-
-    url = info["path"].format(base=info["base"], year=year, month=month, day=day)
     savefile = Path(save_dir, year, filename)
     if savefile.exists():
         logging.debug("Exits save file, ignore")
@@ -76,6 +74,7 @@ def download(info, date, save_dir, sleep=True) -> bool:
 
     ua = UserAgent(platforms=["pc"])
     headers = {"User-Agent": ua.random, "referrer": info["site"]}
+    url = info["path"].format(base=info["base"], year=year, month=month, day=day)
 
     if info["format"] == "image":
         return download_image(url, headers, savefile)
@@ -162,6 +161,6 @@ if __name__ == "__main__":
     days = parser.days
 
     if days > 0:
-        process_batch(config_file, save_dir, 30)
+        process_batch(config_file, save_dir, days)
     else:
         process(config_file, save_dir, names, date)

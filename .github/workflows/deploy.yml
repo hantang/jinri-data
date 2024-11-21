@@ -9,6 +9,7 @@ on:
       - "*.json"
   schedule:
     - cron: "0 20,1 * * *"
+    - cron: "0 4 25 * *"
 
 jobs:
   process:
@@ -27,8 +28,12 @@ jobs:
         with:
           python-version: "3.x"
       - run: pip install -r requirements.txt
-      - name: Run Python scripts
+      - name: Run Python scripts1
+        if: github.event.schedule == "0 20,1 * * *"
         run: python download.py
+      - name: Run Python script2
+        if: github.event.schedule == "0 4 25 * *"
+        run: python download.py --days 32
       - name: Git auto commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
