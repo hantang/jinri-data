@@ -1,5 +1,7 @@
 {
   "owspace": {
+    "status": 0,
+    "failed": "24/12/8 开始接口无法使用",
     "title": "单向空间",
     "site": "https://owspace.com",
     "base": "https://img.owspace.com/Public/uploads/Download",
@@ -9,6 +11,7 @@
     "gaps": [-1,0,1,2,3,4,5,6]
   },
   "one": {
+    "status": 1,
     "title": "One·一个",
     "site": "https://wufazhuce.com",
     "base": "http://v3.wufazhuce.com:8000/api/hp/bydate",

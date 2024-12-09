@@ -17,18 +17,19 @@ import random
 
 def _download_image(url, headers, savefile):
     logging.info(f"request url = {url}")
-    response = requests.get(url, headers=headers)
-
-    if response.ok:
-        data = response.content
-        if not savefile.parent.exists():
-            logging.info(f"Create dir = {savefile.parent}")
-            savefile.parent.mkdir(parents=True, exist_ok=True)
-        logging.info(f"Save to {savefile}")
-        with open(savefile, "wb") as f:
-            f.write(data)
-        return True
-
+    try:
+        response = requests.get(url, headers=headers)
+        if response.ok:
+            data = response.content
+            if not savefile.parent.exists():
+                logging.info(f"Create dir = {savefile.parent}")
+                savefile.parent.mkdir(parents=True, exist_ok=True)
+            logging.info(f"Save to {savefile}")
+            with open(savefile, "wb") as f:
+                f.write(data)
+            return True
+    except Exception:
+        pass
     logging.warning(f"Error status = {response.status_code}")
     return False
 
@@ -48,20 +49,23 @@ def download_image(url, headers, savefile, retry=2):
 
 def download_json(url, headers, savefile, keys, sleep):
     logging.info(f"request url = {url}")
-    response = requests.get(url, headers=headers)
-    if response.ok:
-        data = response.json()
-        image_url = data
-        for key in keys:
-            if key in image_url:
-                image_url = image_url[key]
-            else:
-                return False
+    try:
+        response = requests.get(url, headers=headers)
+        if response.ok:
+            data = response.json()
+            image_url = data
+            for key in keys:
+                if key in image_url:
+                    image_url = image_url[key]
+                else:
+                    return False
 
-        if isinstance(image_url, str) and image_url.startswith("http"):
-            if sleep:
-                time.sleep(random.randint(3, 10))
-            return download_image(image_url, headers, savefile)
+            if isinstance(image_url, str) and image_url.startswith("http"):
+                if sleep:
+                    time.sleep(random.randint(3, 10))
+                return download_image(image_url, headers, savefile)
+    except Exception:
+        pass
 
     logging.warning(f"Error status = {response.status_code}")
     return False
@@ -75,7 +79,7 @@ def download(info, date, save_dir, sleep=True) -> bool:
         logging.debug("Exits save file, ignore")
         return False
 
-    ua = UserAgent(platforms=["pc"])
+    ua = UserAgent(platforms=["pc", "desktop"])
     headers = {"User-Agent": ua.random, "referrer": info["site"]}
     url = info["path"].format(base=info["base"], year=year, month=month, day=day)
 
@@ -150,6 +154,9 @@ def process_batch(config_file, save_dir, days=30):
     if config is None:
         logging.warning("Error: config is None")
         return
+
+    # 过滤失效
+    config = {k:v for k, v in config.items() if v['status'] == 1}
 
     names = sorted(config.keys())
     now = datetime.datetime.now(datetime.UTC)

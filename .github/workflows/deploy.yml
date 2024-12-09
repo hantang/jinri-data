@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - run: pip install -r requirements.txt
+      - run: pip install -U -r requirements.txt
       - name: Run Python scripts1
         if: github.event.schedule == '0 20 * * *'
         run: python download.py
