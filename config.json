@@ -1,7 +1,7 @@
 {
   "owspace": {
-    "status": 0,
-    "failed": "24/12/8 开始接口无法使用",
+    "status": 1,
+    "failed": "24/12/8 开始接口无法使用; 12/16前已恢复",
     "title": "单向空间",
     "site": "https://owspace.com",
     "base": "https://img.owspace.com/Public/uploads/Download",
