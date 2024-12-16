@@ -47,12 +47,17 @@ def download_image(url, headers, savefile, retry=2):
     return res
 
 
-def download_json(url, headers, savefile, keys, sleep):
+def download_json(url, headers, savefile, json_savefile, keys, sleep):
     logging.info(f"request url = {url}")
     try:
         response = requests.get(url, headers=headers)
         if response.ok:
             data = response.json()
+            # save json
+            json_savefile.parent.mkdir(parents=True, exist_ok=True)
+            with open(json_savefile, "w") as f:
+                json.dump(data, f, indent=None, ensure_ascii=False)
+
             image_url = data
             for key in keys:
                 if key in image_url:
@@ -71,13 +76,15 @@ def download_json(url, headers, savefile, keys, sleep):
     return False
 
 
-def download(info, date, save_dir, sleep=True) -> bool:
+def download(info, date, save_dir, json_save_dir, sleep=True) -> bool:
     year, month, day = date.split("-")
     filename = date.replace("-", "") + ".jpg"
     savefile = Path(save_dir, year, filename)
+    json_savefile = Path(json_save_dir, year, date.replace("-", "") + ".json")
     if savefile.exists():
-        logging.debug("Exits save file, ignore")
-        return False
+        if info["format"] != "json" or json_savefile.exists():
+            logging.debug(f"Exits save file, ignore, format={info['format']}")
+            return False
 
     ua = UserAgent(platforms=["pc", "desktop"])
     headers = {"User-Agent": ua.random, "referrer": info["site"]}
@@ -86,13 +93,12 @@ def download(info, date, save_dir, sleep=True) -> bool:
     if info["format"] == "image":
         return download_image(url, headers, savefile)
     elif info["format"] == "json":
-        return download_json(url, headers, savefile, info["keys"], sleep)
+        return download_json(url, headers, savefile, json_savefile, info["keys"], sleep)
 
     return False
 
 
 def read_config(config_file):
-
     if Path(config_file).exists():
         logging.info(f"Read config = {config_file}")
         with open(config_file) as f:
@@ -121,7 +127,8 @@ def process(config_file, save_dir, names, date):
     for name in names:
         logging.info(f"Process name={name}")
         subdir = Path(save_dir, name)
-        download(config[name], date, subdir)
+        json_subdir = Path(save_dir, name+"-json")
+        download(config[name], date, subdir, json_subdir)
 
 
 def process_v2(config_file, save_dir, names, date=None):
@@ -144,9 +151,10 @@ def process_v2(config_file, save_dir, names, date=None):
         gaps = config[name]["gaps"]
         logging.info(f"Process name={name}, gaps={gaps}")
         subdir = Path(save_dir, name)
+        json_subdir = Path(save_dir, name + "-json")
         for day in gaps:
             new_date = (now + datetime.timedelta(days=day)).strftime("%Y-%m-%d")
-            download(config[name], new_date, subdir)
+            download(config[name], new_date, subdir, json_subdir)
 
 
 def process_batch(config_file, save_dir, days=30):
@@ -156,7 +164,7 @@ def process_batch(config_file, save_dir, days=30):
         return
 
     # 过滤失效
-    config = {k:v for k, v in config.items() if v['status'] == 1}
+    config = {k: v for k, v in config.items() if v["status"] == 1}
 
     names = sorted(config.keys())
     now = datetime.datetime.now(datetime.UTC)
@@ -170,7 +178,8 @@ def process_batch(config_file, save_dir, days=30):
         for name in names:
             logging.info(f"Process name={name}")
             subdir = Path(save_dir, name)
-            res = download(config[name], date, subdir, sleep=False)
+            json_subdir = Path(save_dir, name+"-json")
+            res = download(config[name], date, subdir, json_subdir, sleep=False)
             if res:
                 success += 1
         if success > 0:
