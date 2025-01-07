@@ -6,19 +6,22 @@ import argparse
 import datetime
 import json
 import logging
+import random
+import time
+
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
 from fake_useragent import UserAgent
-import time
-import random
 
 
 def _download_image(url, headers, savefile):
     logging.info(f"request url = {url}")
+    status = None
     try:
         response = requests.get(url, headers=headers)
+        status = response.status_code
         if response.ok:
             data = response.content
             if not savefile.parent.exists():
@@ -29,8 +32,8 @@ def _download_image(url, headers, savefile):
                 f.write(data)
             return True
     except Exception:
-        pass
-    logging.warning(f"Error status = {response.status_code}")
+        logging.warning(f"Error status = {status}")
+
     return False
 
 
@@ -49,8 +52,10 @@ def download_image(url, headers, savefile, retry=2):
 
 def download_json(url, headers, savefile, json_savefile, keys, sleep):
     logging.info(f"request url = {url}")
+    status = None
     try:
         response = requests.get(url, headers=headers)
+        status = response.status_code
         if response.ok:
             data = response.json()
             # save json
@@ -70,9 +75,8 @@ def download_json(url, headers, savefile, json_savefile, keys, sleep):
                     time.sleep(random.randint(3, 10))
                 return download_image(image_url, headers, savefile)
     except Exception:
-        pass
+        logging.warning(f"Error status = {status}")
 
-    logging.warning(f"Error status = {response.status_code}")
     return False
 
 
@@ -127,7 +131,7 @@ def process(config_file, save_dir, names, date):
     for name in names:
         logging.info(f"Process name={name}")
         subdir = Path(save_dir, name)
-        json_subdir = Path(save_dir, name+"-json")
+        json_subdir = Path(save_dir, name + "-json")
         download(config[name], date, subdir, json_subdir)
 
 
@@ -178,7 +182,7 @@ def process_batch(config_file, save_dir, days=30):
         for name in names:
             logging.info(f"Process name={name}")
             subdir = Path(save_dir, name)
-            json_subdir = Path(save_dir, name+"-json")
+            json_subdir = Path(save_dir, name + "-json")
             res = download(config[name], date, subdir, json_subdir, sleep=False)
             if res:
                 success += 1
