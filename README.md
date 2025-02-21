@@ -2,7 +2,7 @@
 
 网站：
 
-- https://github.com/hantang/jinri
+- https://hantang.github.io/nav/jinri/
 
 参考资料：
 
