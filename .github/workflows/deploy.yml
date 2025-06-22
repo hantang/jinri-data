@@ -10,6 +10,7 @@ on:
   schedule:
     - cron: "0 20 * * *"
     - cron: "0 4 25 * *"
+  workflow_dispatch:
 
 jobs:
   process:
