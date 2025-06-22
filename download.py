@@ -22,7 +22,7 @@ def _download_image(url, headers, savefile):
     try:
         response = requests.get(url, headers=headers, timeout=30)
         status = response.status_code
-        if response.ok:
+        if response.status_code == 200:
             data = response.content
             if not savefile.parent.exists():
                 logging.info(f"Create dir = {savefile.parent}")
@@ -30,25 +30,25 @@ def _download_image(url, headers, savefile):
             logging.info(f"Save to {savefile}")
             with open(savefile, "wb") as f:
                 f.write(data)
-            return True
+        return response.status_code
     except Exception:
         logging.warning(f"Error status = {status}")
 
-    return False
+    return -1
 
 
 def download_image(url, headers, savefile, retry=2):
-    res = False
     for i in range(retry):
         if i > 0:
             logging.info(f"Retry = {i+1}/{retry}")
-        res = _download_image(url, headers, savefile)
-        if res:
-            return res
 
-        if i < retry:
+        res = _download_image(url, headers, savefile)
+        if res in [200, 404]:
+            return True
+
+        if i + 1 < retry:
             time.sleep(random.randint(3, 10))
-    return res
+    return False
 
 
 def download_json(url, headers, savefile, json_savefile, keys, sleep):
@@ -57,7 +57,7 @@ def download_json(url, headers, savefile, json_savefile, keys, sleep):
     try:
         response = requests.get(url, headers=headers)
         status = response.status_code
-        if response.ok:
+        if response.status_code == 200:
             data = response.json()
             # save json
             json_savefile.parent.mkdir(parents=True, exist_ok=True)
