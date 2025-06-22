@@ -20,7 +20,7 @@ def _download_image(url, headers, savefile):
     logging.info(f"request url = {url}")
     status = None
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
         status = response.status_code
         if response.ok:
             data = response.content
@@ -46,7 +46,8 @@ def download_image(url, headers, savefile, retry=2):
         if res:
             return res
 
-        time.sleep(random.randint(3, 10))
+        if i < retry:
+            time.sleep(random.randint(3, 10))
     return res
 
 
